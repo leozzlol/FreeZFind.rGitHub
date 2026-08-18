@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ZFind.r // OSINT AI Real Search System</title>
-  <!-- Google Fonts: Silkscreen (Pixel) e Share Tech Mono (Hacker Terminal) -->
+  <!-- Google Fonts: Silkscreen (Pixel) & Share Tech Mono (Hacker Terminal) -->
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Silkscreen&display=swap" rel="stylesheet">
   
   <style>
@@ -34,6 +34,602 @@
       overflow-x: hidden;
       position: relative;
     }
+
+    /* Animated Matrix Background */
+    canvas#matrix {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      opacity: 0.15;
+    }
+
+    .container {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      max-width: 680px;
+      margin: 30px auto;
+      padding: 20px;
+    }
+
+    /* Pixelated Logo */
+    .logo {
+      font-family: 'Silkscreen', cursive;
+      font-size: 3rem;
+      text-align: center;
+      color: var(--neon-green);
+      text-shadow: 0 0 10px var(--neon-green), 0 0 20px var(--neon-green);
+      margin-bottom: 20px;
+      letter-spacing: 2px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--neon-green);
+      box-shadow: 0 0 15px var(--glow-green);
+      border-radius: 8px;
+      padding: 25px;
+      backdrop-filter: blur(5px);
+    }
+
+    .api-key-box {
+      margin-bottom: 20px;
+      padding: 12px;
+      border: 1px dashed var(--neon-green);
+      background: rgba(0, 255, 65, 0.05);
+      border-radius: 4px;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      border-bottom: 1px solid var(--dark-green);
+      padding-bottom: 8px;
+    }
+
+    .section-title {
+      font-size: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* Dynamic Info Field Styling */
+    .info-item {
+      background: rgba(0, 20, 0, 0.6);
+      border: 1px solid var(--dark-green);
+      padding: 15px;
+      border-radius: 6px;
+      margin-bottom: 15px;
+      position: relative;
+      transition: all 0.3s ease;
+    }
+
+    .info-item:focus-within {
+      border-color: var(--neon-green);
+      box-shadow: 0 0 8px var(--glow-green);
+    }
+
+    .info-header {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .info-title-input {
+      flex: 1;
+      padding: 8px 12px;
+      background: rgba(0, 30, 0, 0.9);
+      border: 1px solid var(--dark-green);
+      color: var(--neon-green);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.9rem;
+      border-radius: 4px;
+      outline: none;
+      text-transform: uppercase;
+      font-weight: bold;
+    }
+
+    .info-title-input:focus {
+      border-color: var(--neon-green);
+    }
+
+    .info-value-input {
+      width: 100%;
+      padding: 12px;
+      background: rgba(0, 10, 0, 0.9);
+      border: 1px solid var(--dark-green);
+      color: var(--neon-green);
+      font-family: 'Share Tech Mono', monospace;
+      border-radius: 4px;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+
+    .info-value-input:focus {
+      border-color: var(--neon-green);
+    }
+
+    /* Buttons */
+    .btn-add {
+      background: transparent;
+      border: 1px solid var(--neon-green);
+      color: var(--neon-green);
+      padding: 6px 12px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.85rem;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-add:hover {
+      background: var(--neon-green);
+      color: #000;
+      box-shadow: 0 0 10px var(--glow-green);
+    }
+
+    .btn-remove {
+      background: transparent;
+      border: 1px solid #ff0055;
+      color: #ff0055;
+      padding: 0 12px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 1.2rem;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-remove:hover {
+      background: #ff0055;
+      color: #000;
+      box-shadow: 0 0 10px rgba(255, 0, 85, 0.5);
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 12px;
+      background: rgba(0, 20, 0, 0.9);
+      border: 1px solid var(--dark-green);
+      color: var(--neon-green);
+      font-family: 'Share Tech Mono', monospace;
+      border-radius: 4px;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+
+    input:focus, textarea:focus {
+      border-color: var(--neon-green);
+      box-shadow: 0 0 8px var(--glow-green);
+    }
+
+    /* Neon Button */
+    .btn-search {
+      width: 100%;
+      padding: 15px;
+      background: transparent;
+      border: 2px solid var(--neon-green);
+      color: var(--neon-green);
+      font-family: 'Silkscreen', cursive;
+      font-size: 1rem;
+      cursor: pointer;
+      border-radius: 4px;
+      text-transform: uppercase;
+      transition: all 0.3s ease;
+      box-shadow: 0 0 10px var(--glow-green);
+      margin-top: 15px;
+    }
+
+    .btn-search:hover {
+      background: var(--neon-green);
+      color: #000;
+      box-shadow: 0 0 25px var(--neon-green);
+    }
+
+    .btn-search:disabled {
+      border-color: #333;
+      color: #555;
+      box-shadow: none;
+      cursor: not-allowed;
+    }
+
+    /* Hacker Terminal */
+    .terminal {
+      display: none;
+      margin-top: 20px;
+      background: #000;
+      border: 1px solid var(--neon-green);
+      padding: 15px;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      height: 140px;
+      overflow-y: auto;
+      box-shadow: inset 0 0 10px rgba(0, 255, 65, 0.2);
+    }
+
+    .terminal-line {
+      margin-bottom: 5px;
+      opacity: 0;
+      animation: fadeIn 0.3s forwards;
+    }
+
+    /* Results */
+    .results-container {
+      margin-top: 25px;
+      display: none;
+    }
+
+    .results-title {
+      font-family: 'Silkscreen', cursive;
+      font-size: 1rem;
+      margin-bottom: 15px;
+      border-bottom: 1px solid var(--neon-green);
+      padding-bottom: 5px;
+    }
+
+    .result-card {
+      background: rgba(0, 30, 0, 0.6);
+      border: 1px solid var(--dark-green);
+      padding: 15px;
+      border-radius: 4px;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .result-card:hover {
+      border-color: var(--neon-green);
+      background: rgba(0, 50, 0, 0.85);
+      transform: translateX(5px);
+      box-shadow: 0 0 10px var(--glow-green);
+    }
+
+    .result-info h4 {
+      font-size: 1rem;
+      color: #fff;
+    }
+
+    .result-info p {
+      font-size: 0.8rem;
+      color: #aaa;
+      margin-top: 4px;
+    }
+
+    .badge {
+      background: var(--neon-green);
+      color: #000;
+      padding: 4px 8px;
+      border-radius: 3px;
+      font-size: 0.75rem;
+      font-weight: bold;
+    }
+
+    footer {
+      position: relative;
+      z-index: 2;
+      padding: 20px;
+      text-align: center;
+      font-size: 0.85rem;
+      color: #00aa2a;
+    }
+
+    footer a {
+      color: var(--neon-green);
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    @keyframes fadeIn {
+      to { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="matrix"></canvas>
+
+  <div class="container">
+    <div class="logo">ZFind.r</div>
+
+    <div class="card">
+      
+      <!-- Gemini API Key Input -->
+      <div class="api-key-box">
+        <label for="apiKey" style="display:block; margin-bottom: 5px; font-size: 0.85rem; text-transform: uppercase;">> Enter Gemini API Key:</label>
+        <input type="password" id="apiKey" placeholder="Paste your Google AI Studio API Key here..." onkeydown="playKeySound()">
+      </div>
+
+      <!-- Dynamic Info Fields Section -->
+      <div class="section-header">
+        <span class="section-title">> Target Information Parameters</span>
+        <button type="button" class="btn-add" onclick="addInfoField()">+ Add Info Field</button>
+      </div>
+
+      <div id="infoFieldsContainer">
+        <!-- Initial Field: Name (Locked title for default field) -->
+        <div class="info-item">
+          <div class="info-header">
+            <input type="text" class="info-title-input" value="Name" readonly onkeydown="playKeySound()">
+          </div>
+          <input type="text" class="info-value-input" placeholder="e.g. John Doe" onkeydown="playKeySound()">
+        </div>
+      </div>
+
+      <button class="btn-search" id="btnSearch" onclick="runHackSearch()">Start AI Search</button>
+
+      <!-- Hacker Terminal -->
+      <div class="terminal" id="terminal"></div>
+
+      <!-- Results Container -->
+      <div class="results-container" id="results">
+        <div class="results-title">> AI Search Results & Matched Profiles</div>
+        <div id="resultsList"></div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    made by leozz - <a href="https://www.tiktok.com/@eh.oleozz" target="_blank">@eh.oleozz on tiktok</a>
+  </footer>
+
+  <script>
+    // --- AUDIO SYNTHESIZER (WEB AUDIO API) ---
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    function playKeySound() {
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(400 + Math.random() * 200, audioCtx.currentTime);
+      gain.gain.setValueAtTime(0.03, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.04);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.04);
+    }
+
+    function playBeepSound(frequency = 800, duration = 0.08) {
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(frequency, audioCtx.currentTime);
+      gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + duration);
+    }
+
+    function playSuccessSound() {
+      playBeepSound(1200, 0.1);
+      setTimeout(() => playBeepSound(1600, 0.15), 120);
+    }
+
+    // --- MATRIX BACKGROUND ANIMATION ---
+    const canvas = document.getElementById('matrix');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const chars = '01ABCDEFGHIJKLMNOPQRSTUVWXYZ$%#@&';
+    const fontSize = 14;
+    const columns = canvas.width / fontSize;
+    const drops = Array(Math.floor(columns)).fill(1);
+
+    function drawMatrix() {
+      ctx.fillStyle = 'rgba(5, 10, 5, 0.05)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#00ff41';
+      ctx.font = fontSize + 'px monospace';
+
+      for (let i = 0; i < drops.length; i++) {
+        const text = chars.charAt(Math.floor(Math.random() * chars.length));
+        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+          drops[i] = 0;
+        }
+        drops[i]++;
+      }
+    }
+    setInterval(drawMatrix, 33);
+
+    // --- DYNAMIC INFO FIELDS LOGIC ---
+    function addInfoField() {
+      playKeySound();
+      const container = document.getElementById('infoFieldsContainer');
+      const item = document.createElement('div');
+      item.className = 'info-item';
+      
+      item.innerHTML = `
+        <div class="info-header">
+          <input type="text" class="info-title-input" placeholder="Field Name (e.g. School, City, Age)" onkeydown="playKeySound()">
+          <button type="button" class="btn-remove" onclick="removeInfoField(this)">×</button>
+        </div>
+        <input type="text" class="info-value-input" placeholder="Field Value..." onkeydown="playKeySound()">
+      `;
+      
+      container.appendChild(item);
+    }
+
+    function removeInfoField(button) {
+      playKeySound();
+      const item = button.closest('.info-item');
+      item.remove();
+    }
+
+    // --- TERMINAL LOGS ---
+    function appendTerminalLog(text) {
+      const terminal = document.getElementById('terminal');
+      playBeepSound(600 + Math.random() * 400, 0.05);
+      const line = document.createElement('div');
+      line.className = 'terminal-line';
+      line.innerText = text;
+      terminal.appendChild(line);
+      terminal.scrollTop = terminal.scrollHeight;
+    }
+
+    // --- REAL GEMINI API SEARCH REQUEST ---
+    async function runHackSearch() {
+      const apiKey = document.getElementById('apiKey').value.trim();
+      const btn = document.getElementById('btnSearch');
+
+      if (!apiKey) {
+        alert('Please enter your Gemini API Key in the field above!');
+        return;
+      }
+
+      // Collect dynamic info fields
+      const infoItems = document.querySelectorAll('.info-item');
+      const parameters = {};
+      let hasData = false;
+
+      infoItems.forEach(item => {
+        const titleInput = item.querySelector('.info-title-input');
+        const valueInput = item.querySelector('.info-value-input');
+        
+        const title = titleInput.value.trim();
+        const value = valueInput.value.trim();
+
+        if (title && value) {
+          parameters[title] = value;
+          hasData = true;
+        }
+      });
+
+      if (!hasData || !parameters['Name']) {
+        alert('Please fill at least the Name field!');
+        return;
+      }
+
+      const terminal = document.getElementById('terminal');
+      const resultsContainer = document.getElementById('results');
+      const resultsList = document.getElementById('resultsList');
+
+      btn.disabled = true;
+      terminal.style.display = 'block';
+      resultsContainer.style.display = 'none';
+      terminal.innerHTML = '';
+      resultsList.innerHTML = '';
+
+      appendTerminalLog(`[+] Initializing ZFind.r OSINT AI Module...`);
+      await new Promise(r => setTimeout(r, 300));
+      appendTerminalLog(`[+] Validating API Key & Parameters...`);
+      await new Promise(r => setTimeout(r, 300));
+      
+      let paramSummary = Object.entries(parameters).map(([k, v]) => `${k}: "${v}"`).join(', ');
+      appendTerminalLog(`[+] Target Specs: ${paramSummary}`);
+      await new Promise(r => setTimeout(r, 300));
+      
+      appendTerminalLog(`[+] Executing Google Search Grounding with Gemini AI...`);
+
+      const promptText = `Act as an advanced OSINT analyst.
+Analyze the following provided target parameters:
+${JSON.stringify(parameters, null, 2)}
+
+Your tasks:
+1. Infer or cross-reference location, school/institution, or background data based on the parameters.
+2. Search or build exact direct URLs for social media profiles (Instagram, TikTok, X/Twitter, Facebook, LinkedIn) matching these parameters.
+
+Return STRICTLY a JSON object without any markdown formatting (no \`\`\`json tags) matching this structure:
+{
+  "location_inferred": "City, Country or Info Summary",
+  "results": [
+    {
+      "platform": "Instagram",
+      "title": "Profile or Target Search Link",
+      "description": "Short explanation of match based on params",
+      "url": "https://www.instagram.com/..."
+    },
+    {
+      "platform": "TikTok",
+      "title": "TikTok Search/Match",
+      "description": "Short explanation",
+      "url": "https://www.tiktok.com/..."
+    },
+    {
+      "platform": "X (Twitter)",
+      "title": "X Search/Match",
+      "description": "Short explanation",
+      "url": "https://x.com/..."
+    }
+  ]
+}`;
+
+      try {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+        
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: promptText }] }],
+            tools: [{ googleSearch: {} }]
+          })
+        });
+
+        if (!response.ok) {
+          const errData = await response.json();
+          throw new Error(errData.error?.message || 'Invalid API key or request error.');
+        }
+
+        const data = await response.json();
+        const candidate = data.candidates?.[0];
+        const rawText = candidate?.content?.parts?.[0]?.text;
+
+        if (!rawText) {
+          throw new Error('No response returned from the AI.');
+        }
+
+        const cleanJson = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
+        const aiResponse = JSON.parse(cleanJson);
+
+        appendTerminalLog(`[!] Location/Info inferred: ${aiResponse.location_inferred}`);
+        appendTerminalLog(`[SUCCESS] Intelligence scan complete! Rendering matches.`);
+        playSuccessSound();
+
+        resultsList.innerHTML = '';
+        aiResponse.results.forEach(res => {
+          const item = document.createElement('div');
+          item.className = 'result-card';
+          item.onclick = () => window.open(res.url, '_blank');
+          item.innerHTML = `
+            <div class="result-info">
+              <h4>${res.title}</h4>
+              <p>${res.description} - <em>${aiResponse.location_inferred}</em></p>
+            </div>
+            <span class="badge">${res.platform}</span>
+          `;
+          resultsList.appendChild(item);
+        });
+
+        resultsContainer.style.display = 'block';
+
+      } catch (err) {
+        console.error(err);
+        appendTerminalLog(`[ERROR] ${err.message}`);
+        playBeepSound(300, 0.3);
+      } finally {
+        btn.disabled = false;
+      }
+    }
+  </script>
+</body>
+</html>
 
     /* Fundo Matrix Animado */
     canvas#matrix {
