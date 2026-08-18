@@ -4,6 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ZFind.r // OSINT AI Real Search System</title>
+  
+  <!-- FAVICON: Ícone de Aba com 'Z' Pixelado Verde -->
+  <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAWklEQVR4nO2WQQ4AEAwE8TMv97Q6q0NJSSVmji6d7O5BSvA7eXqRKncvtuFmuXpsAQTmDXixNsQGXhPwb2Czc014Agjsb8DZuSY8AQTsvg53rglPAAH+hAgAdI7sEis8dHU1AAAAAElFTkSuQmCC">
+
   <!-- Google Fonts: Silkscreen (Pixel) & Share Tech Mono (Hacker Terminal) -->
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Silkscreen&display=swap" rel="stylesheet">
   
@@ -370,7 +374,7 @@
       <!-- Gemini API Key Input -->
       <div class="api-key-box">
         <label for="apiKey" style="display:block; margin-bottom: 5px; font-size: 0.85rem; text-transform: uppercase;">> Enter Gemini API Key:</label>
-        <input type="password" id="apiKey" placeholder="Paste your Google AI Studio API Key here..." onkeydown="playKeySound()">
+        <input type="password" id="apiKey" placeholder="Paste your Google AI Studio API Key here..." onkeydown="playKeySound()" oninput="saveApiKey()">
       </div>
 
       <!-- AI Model Selector -->
@@ -421,10 +425,23 @@
   </div>
 
   <footer>
-    made by leozz v1.2 - <a href="https://www.tiktok.com/@eh.oleozz" target="_blank">@eh.oleozz on tiktok</a>
+    made by leozz - <a href="https://www.tiktok.com/@eh.oleozz" target="_blank">@eh.oleozz on tiktok</a>
   </footer>
 
   <script>
+    // --- LOCAL STORAGE API KEY ---
+    window.addEventListener('DOMContentLoaded', () => {
+      const savedKey = localStorage.getItem('zfindr_api_key');
+      if (savedKey) {
+        document.getElementById('apiKey').value = savedKey;
+      }
+    });
+
+    function saveApiKey() {
+      const keyVal = document.getElementById('apiKey').value;
+      localStorage.setItem('zfindr_api_key', keyVal);
+    }
+
     // --- AUDIO SYNTHESIZER (WEB AUDIO API) ---
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
