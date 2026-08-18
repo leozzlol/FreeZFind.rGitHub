@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZFind.r // OSINT AI Real Search System</title>
+  <!-- Google Fonts: Silkscreen (Pixel) e Share Tech Mono (Hacker Terminal) -->
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Silkscreen&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg-color: #050a05;
+      --neon-green: #00ff41;
+      --dark-green: #003b00;
+      --glow-green: rgba(0, 255, 65, 0.4);
+      --card-bg: rgba(5, 15, 5, 0.88);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--neon-green);
+      font-family: 'Share Tech Mono', monospace;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Fundo Matrix Animado */
+    canvas#matrix {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      opacity: 0.15;
+    }
+
+    .container {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      max-width: 680px;
+      margin: 30px auto;
+      padding: 20px;
+    }
+
+    /* Logo Pixelada */
+    .logo {
+      font-family: 'Silkscreen', cursive;
+      font-size: 3rem;
+      text-align: center;
+      color: var(--neon-green);
+      text-shadow: 0 0 10px var(--neon-green), 0 0 20px var(--neon-green);
+      margin-bottom: 20px;
+      letter-spacing: 2px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--neon-green);
+      box-shadow: 0 0 15px var(--glow-green);
+      border-radius: 8px;
+      padding: 25px;
+      backdrop-filter: blur(5px);
+    }
+
+    .api-key-box {
+      margin-bottom: 20px;
+      padding: 12px;
+      border: 1px dashed var(--neon-green);
+      background: rgba(0, 255, 65, 0.05);
+      border-radius: 4px;
+    }
+
+    .input-group {
+      margin-bottom: 15px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 12px;
+      background: rgba(0, 20, 0, 0.9);
+      border: 1px solid var(--dark-green);
+      color: var(--neon-green);
+      font-family: 'Share Tech Mono', monospace;
+      border-radius: 4px;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+
+    input:focus, textarea:focus {
+      border-color: var(--neon-green);
+      box-shadow: 0 0 8px var(--glow-green);
+    }
+
+    /* Botão Neon */
+    .btn-search {
+      width: 100%;
+      padding: 15px;
+      background: transparent;
+      border: 2px solid var(--neon-green);
+      color: var(--neon-green);
+      font-family: 'Silkscreen', cursive;
+      font-size: 1rem;
+      cursor: pointer;
+      border-radius: 4px;
+      text-transform: uppercase;
+      transition: all 0.3s ease;
+      box-shadow: 0 0 10px var(--glow-green);
+      margin-top: 10px;
+    }
+
+    .btn-search:hover {
+      background: var(--neon-green);
+      color: #000;
+      box-shadow: 0 0 25px var(--neon-green);
+    }
+
+    .btn-search:disabled {
+      border-color: #333;
+      color: #555;
+      box-shadow: none;
+      cursor: not-allowed;
+    }
+
+    /* Terminal Hacker */
+    .terminal {
+      display: none;
+      margin-top: 20px;
+      background: #000;
+      border: 1px solid var(--neon-green);
+      padding: 15px;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      height: 140px;
+      overflow-y: auto;
+      box-shadow: inset 0 0 10px rgba(0, 255, 65, 0.2);
+    }
+
+    .terminal-line {
+      margin-bottom: 5px;
+      opacity: 0;
+      animation: fadeIn 0.3s forwards;
+    }
+
+    /* Resultados */
+    .results-container {
+      margin-top: 25px;
+      display: none;
+    }
+
+    .results-title {
+      font-family: 'Silkscreen', cursive;
+      font-size: 1rem;
+      margin-bottom: 15px;
+      border-bottom: 1px solid var(--neon-green);
+      padding-bottom: 5px;
+    }
+
+    .result-card {
+      background: rgba(0, 30, 0, 0.6);
+      border: 1px solid var(--dark-green);
+      padding: 15px;
+      border-radius: 4px;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .result-card:hover {
+      border-color: var(--neon-green);
+      background: rgba(0, 50, 0, 0.85);
+      transform: translateX(5px);
+      box-shadow: 0 0 10px var(--glow-green);
+    }
+
+    .result-info h4 {
+      font-size: 1rem;
+      color: #fff;
+    }
+
+    .result-info p {
+      font-size: 0.8rem;
+      color: #aaa;
+      margin-top: 4px;
+    }
+
+    .badge {
+      background: var(--neon-green);
+      color: #000;
+      padding: 4px 8px;
+      border-radius: 3px;
+      font-size: 0.75rem;
+      font-weight: bold;
+    }
+
+    footer {
+      position: relative;
+      z-index: 2;
+      padding: 20px;
+      text-align: center;
+      font-size: 0.85rem;
+      color: #00aa2a;
+    }
+
+    footer a {
+      color: var(--neon-green);
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    @keyframes fadeIn {
+      to { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="matrix"></canvas>
+
+  <div class="container">
+    <div class="logo">ZFind.r</div>
+
+    <div class="card">
+      
+      <!-- Entrada para a API Key do Gemini -->
+      <div class="api-key-box">
+        <label for="apiKey">> Insira sua API Key do Gemini:</label>
+        <input type="password" id="apiKey" placeholder="Cole sua API Key do Google AI Studio aqui..." onkeydown="playKeySound()">
+      </div>
+
+      <div class="input-group">
+        <label for="targetName">> Nome Completo do Alvo:</label>
+        <input type="text" id="targetName" placeholder="Ex: Gabriel Silva" onkeydown="playKeySound()">
+      </div>
+
+      <div class="input-group">
+        <label for="targetSchool">> Escola / Instituição:</label>
+        <input type="text" id="targetSchool" placeholder="Ex: Colégio Estadual Pedro II" onkeydown="playKeySound()">
+      </div>
+
+      <div class="input-group">
+        <label for="targetGrade">> Série / Ano (Opcional):</label>
+        <input type="text" id="targetGrade" placeholder="Ex: 2º Ano do Ensino Médio" onkeydown="playKeySound()">
+      </div>
+
+      <button class="btn-search" id="btnSearch" onclick="runHackSearch()">Iniciar Busca com IA</button>
+
+      <!-- Terminal Hacker -->
+      <div class="terminal" id="terminal"></div>
+
+      <!-- Resultados -->
+      <div class="results-container" id="results">
+        <div class="results-title">> Resultados da Análise da IA</div>
+        <div id="resultsList"></div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    made by leozz - <a href="https://www.tiktok.com/@eh.oleozz" target="_blank">@eh.oleozz on tiktok</a>
+  </footer>
+
+  <script>
+    // --- ÁUDIO DO TERMINAL (WEB AUDIO API) ---
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    function playKeySound() {
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(400 + Math.random() * 200, audioCtx.currentTime);
+      gain.gain.setValueAtTime(0.03, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.04);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.04);
+    }
+
+    function playBeepSound(frequency = 800, duration = 0.08) {
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(frequency, audioCtx.currentTime);
+      gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + duration);
+    }
+
+    function playSuccessSound() {
+      playBeepSound(1200, 0.1);
+      setTimeout(() => playBeepSound(1600, 0.15), 120);
+    }
+
+    // --- ANIMAÇÃO MATRIX ---
+    const canvas = document.getElementById('matrix');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const chars = '01ABCDEFGHIJKLMNOPQRSTUVWXYZ$%#@&';
+    const fontSize = 14;
+    const columns = canvas.width / fontSize;
+    const drops = Array(Math.floor(columns)).fill(1);
+
+    function drawMatrix() {
+      ctx.fillStyle = 'rgba(5, 10, 5, 0.05)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#00ff41';
+      ctx.font = fontSize + 'px monospace';
+
+      for (let i = 0; i < drops.length; i++) {
+        const text = chars.charAt(Math.floor(Math.random() * chars.length));
+        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+          drops[i] = 0;
+        }
+        drops[i]++;
+      }
+    }
+    setInterval(drawMatrix, 33);
+
+    // --- LOGS DE TERMINAL ---
+    function appendTerminalLog(text) {
+      const terminal = document.getElementById('terminal');
+      playBeepSound(600 + Math.random() * 400, 0.05);
+      const line = document.createElement('div');
+      line.className = 'terminal-line';
+      line.innerText = text;
+      terminal.appendChild(line);
+      terminal.scrollTop = terminal.scrollHeight;
+    }
+
+    // --- REQUISIÇÃO REAL PARA API GEMINI ---
+    async function runHackSearch() {
+      const apiKey = document.getElementById('apiKey').value.trim();
+      const name = document.getElementById('targetName').value.trim();
+      const school = document.getElementById('targetSchool').value.trim();
+      const grade = document.getElementById('targetGrade').value.trim();
+      const btn = document.getElementById('btnSearch');
+
+      if (!apiKey) {
+        alert('Por favor, cole sua API Key no campo indicado!');
+        return;
+      }
+      if (!name || !school) {
+        alert('Por favor, preencha pelo menos o Nome e a Escola!');
+        return;
+      }
+
+      const terminal = document.getElementById('terminal');
+      const resultsContainer = document.getElementById('results');
+      const resultsList = document.getElementById('resultsList');
+
+      btn.disabled = true;
+      terminal.style.display = 'block';
+      resultsContainer.style.display = 'none';
+      terminal.innerHTML = '';
+      resultsList.innerHTML = '';
+
+      appendTerminalLog(`[+] Inicializando módulo ZFind.r OSINT AI...`);
+      await new Promise(r => setTimeout(r, 300));
+      appendTerminalLog(`[+] Validando chave API...`);
+      await new Promise(r => setTimeout(r, 300));
+      appendTerminalLog(`[+] Enviando consulta com Google Search Grounding...`);
+
+      const promptText = `Atue como um analista OSINT avançado.
+Análise as informações:
+- Nome: ${name}
+- Escola/Instituição: ${school}
+- Série/Ano: ${grade || 'Não especificado'}
+
+Sua tarefa:
+1. Identifique em qual cidade/estado essa escola fica.
+2. Busque ou monte links exatos de perfis em redes sociais (Instagram, TikTok, X) relacionados ao nome e escola.
+
+Responda ESTRITAMENTE em formato JSON (sem marcadores de markdown como \`\`\`json) com a estrutura:
+{
+  "cidade_identificada": "Cidade, UF",
+  "resultados": [
+    {
+      "plataforma": "Instagram",
+      "titulo": "Perfil ou Busca Otimizada",
+      "descricao": "Descrição curta da relação",
+      "url": "https://www.instagram.com/..."
+    },
+    {
+      "plataforma": "TikTok",
+      "titulo": "Busca TikTok",
+      "descricao": "Descrição curta",
+      "url": "https://www.tiktok.com/..."
+    },
+    {
+      "plataforma": "X (Twitter)",
+      "titulo": "Busca X",
+      "descricao": "Descrição curta",
+      "url": "https://x.com/..."
+    }
+  ]
+}`;
+
+      try {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+        
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: promptText }] }],
+            tools: [{ googleSearch: {} }]
+          })
+        });
+
+        if (!response.ok) {
+          const errData = await response.json();
+          throw new Error(errData.error?.message || 'Chave API inválida ou erro na requisição.');
+        }
+
+        const data = await response.json();
+        const candidate = data.candidates?.[0];
+        const rawText = candidate?.content?.parts?.[0]?.text;
+
+        if (!rawText) {
+          throw new Error('Nenhum dado retornado da API.');
+        }
+
+        const cleanJson = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
+        const aiResponse = JSON.parse(cleanJson);
+
+        appendTerminalLog(`[!] Cidade estimada: ${aiResponse.cidade_identificada}`);
+        appendTerminalLog(`[SUCCESS] Varredura concluída com sucesso!`);
+        playSuccessSound();
+
+        resultsList.innerHTML = '';
+        aiResponse.resultados.forEach(res => {
+          const item = document.createElement('div');
+          item.className = 'result-card';
+          item.onclick = () => window.open(res.url, '_blank');
+          item.innerHTML = `
+            <div class="result-info">
+              <h4>${res.titulo}</h4>
+              <p>${res.descricao} - <em>${aiResponse.cidade_identificada}</em></p>
+            </div>
+            <span class="badge">${res.plataforma}</span>
+          `;
+          resultsList.appendChild(item);
+        });
+
+        resultsContainer.style.display = 'block';
+
+      } catch (err) {
+        console.error(err);
+        appendTerminalLog(`[ERROR] ${err.message}`);
+        playBeepSound(300, 0.3);
+      } finally {
+        btn.disabled = false;
+      }
+    }
+  </script>
+</body>
+</html>
