@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ZFind.r // OSINT AI Real Search System</title>
   
-  <!-- FAVICON: Ícone de Aba com 'Z' Pixelado Verde -->
+  <!-- FAVICON: Pixelated Green 'Z' Icon -->
   <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAWklEQVR4nO2WQQ4AEAwE8TMv97Q6q0NJSSVmji6d7O5BSvA7eXqRKncvtuFmuXpsAQTmDXixNsQGXhPwb2Czc014Agjsb8DZuSY8AQTsvg53rglPAAH+hAgAdI7sEis8dHU1AAAAAElFTkSuQmCC">
 
   <!-- Google Fonts: Silkscreen (Pixel) & Share Tech Mono (Hacker Terminal) -->
@@ -18,6 +18,7 @@
       --dark-green: #003b00;
       --glow-green: rgba(0, 255, 65, 0.4);
       --card-bg: rgba(5, 15, 5, 0.88);
+      --warning-yellow: #ffcc00;
     }
 
     * {
@@ -77,6 +78,50 @@
       border-radius: 8px;
       padding: 25px;
       backdrop-filter: blur(5px);
+    }
+
+    /* Guide Box Styling */
+    .guide-box {
+      margin-bottom: 20px;
+      padding: 15px;
+      border: 1px solid var(--neon-green);
+      background: rgba(0, 20, 0, 0.7);
+      border-radius: 6px;
+      font-size: 0.85rem;
+      line-height: 1.4;
+    }
+
+    .guide-title {
+      font-family: 'Silkscreen', cursive;
+      font-size: 0.9rem;
+      color: var(--neon-green);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .guide-steps {
+      margin-left: 18px;
+      margin-bottom: 12px;
+    }
+
+    .guide-steps li {
+      margin-bottom: 6px;
+    }
+
+    .guide-steps a {
+      color: var(--neon-green);
+      text-decoration: underline;
+    }
+
+    .guide-warning {
+      background: rgba(255, 204, 0, 0.1);
+      border-left: 3px solid var(--warning-yellow);
+      color: var(--warning-yellow);
+      padding: 8px 10px;
+      font-size: 0.8rem;
+      border-radius: 2px;
     }
 
     .api-key-box {
@@ -371,6 +416,20 @@
 
     <div class="card">
       
+      <!-- Guide to Obtain API Key -->
+      <div class="guide-box">
+        <div class="guide-title">> HOW TO GET YOUR FREE API KEY</div>
+        <ol class="guide-steps">
+          <li>Visit <a href="https://aistudio.google.com/app/apikey" target="_blank">Google AI Studio (aistudio.google.com)</a> and sign in with your Google account.</li>
+          <li>Click the <strong>"Create API Key"</strong> button.</li>
+          <li>Copy the generated key and paste it into the field below.</li>
+        </ol>
+        <div class="guide-warning">
+          <strong>⚠️ IMPORTANT NOTICE FOR NEW ACCOUNTS:</strong><br>
+          If you just created your API Key or if your Google account is brand new, Google may temporarily block free AI requests and throw an error. <strong>Wait about 3 days</strong> after creating the key for the Free Tier quota to activate automatically without requiring a credit card.
+        </div>
+      </div>
+
       <!-- Gemini API Key Input -->
       <div class="api-key-box">
         <label for="apiKey" style="display:block; margin-bottom: 5px; font-size: 0.85rem; text-transform: uppercase;">> Enter Gemini API Key:</label>
