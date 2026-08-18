@@ -1,0 +1,3 @@
+Alright, I know you've already read the description, but I need you to read this too because I forgot to mention something, and since I'm new to GitHub I don't know how to edit descriptions :/
+To stalk people (hehe) you'll need to create a Gemini API Key at studio.google.com! There are free and paid APIs; the paid ones are faster, the free ones are a bit slower, but they still work. As soon as you open the website, you'll need to enter this API Key. If you enter a fake API Key, you WON'T be able to stalk anyone, okay? lol 
+That's what I wanted to say, thank you so much for your patience and for reading the readme (especially since nobody reads readmes these days lmao)
